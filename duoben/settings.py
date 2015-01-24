@@ -22,11 +22,7 @@ SITE_ID = 1
 SECRET_KEY = 'i^!&hx(pt7nso6u8lg@$#+pwyv!03k$mrrg-e&$ihs(g1a9ouw'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-TEMPLATE_DEBUG = True
-
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -61,12 +57,7 @@ WSGI_APPLICATION = 'duoben.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
@@ -86,11 +77,50 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
-# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = '/media/'
 
-TEMPLATE_CONTEXT_PROCESSORS += ("app.process.process",)
+TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',"app.process.process",)
+
+
+
+
+from local_settings import *
+if DEBUG:
+    TEMPLATE_DEBUG = True
+    ALLOWED_HOSTS = []
+    STATICFILES_DIRS = (
+        os.path.join(BASE_DIR, "static"),
+    )
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+    TEMPLATE_DEBUG = False
+    ALLOWED_HOSTS = ["*"]
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+
+        }
+    }
+
+    # CACHES = {
+    #     'default': {
+    #         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+    #         'LOCATION': os.path.join(BASE_DIR, "cache"),
+    #         'TIMEOUT': 60,
+    #         'OPTIONS': {
+    #             'MAX_ENTRIES': 1000
+    #         }
+    #     }
+    # }

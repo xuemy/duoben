@@ -77,9 +77,11 @@ def user():
     env.password = "duoben"
     env.mysql_root = "root"
     env.mysql_root_pw = "xmy@5650268"
+
     env.mysql_user = env.user
     env.mysql_db = env.user
     env.mysql_pw = "xmy@5650268"
+
     env.git = "https://github.com/xuemy/duoben.git"
 
     home = fabtools.user.home_directory(env.user)
@@ -161,16 +163,63 @@ def git_clone():
     require.directory(env.media_dir)
 
 
-@roles("user")
+@task
+def git_pull():
+    fabtools.git.pull(env.code_dir)
+
+
+@task
+def install_virtualenv():
+    # 创建virtualenv
+    require.python.virtualenv(env.virtualenv_dir)
+
+    with fabtools.python.virtualenv(env.virtualenv_dir):
+        fabtools.python.install(["django",
+                                 "gunicorn",
+                                 "django-codemirror-widget",
+                                 "django-jsonfield",
+                                 "pillow",
+                                 "scrapy",
+                                 "MySQL-python",
+                                 "gevent",
+                                 "pypinyin"]
+        )
+
+
+@task
+def config_settings():
+    puts(red("添加local_settings"))
+    setting_file = posixpath.join(env.code_dir, "duoben", "local_settings.py")
+    setting_template = '''\
+#encoding:utf-8
+from app import admin
+from django.conf.urls import patterns, url, include
+DB_NAME = "%(db_name)s"
+DB_USER = "%(db_user)s"
+DB_PASSWORD = "%(db_passwd)s"
+DEBUG = False
+local_url = patterns("",url(r'^xmy/admin/', include(admin.site.urls)),)
+'''
+    require.files.template_file(setting_file,
+                                template_contents=setting_template,
+                                context=dict(db_name=env.mysql_db,db_user=env.mysql_user,db_passwd=env.mysql_pw)
+    )
+    puts(green("添加local_settings完成"))
+
+
 @task
 def config_django():
-    home = fabtools.user.home_directory(user)
-    with cd(code_dir(home)):
-        with fabtools.python.virtualenv(virtualenv_dir(home)):
+    with cd(env.code_dir):
+        with fabtools.python.virtualenv(env.virtualenv_dir):
             run("python manage.py syncdb")
             run("python manage.py makemigrations")
             run("python manage.py migrate")
-            run("python manage.py loaddata data.json")
+
+@task
+def config_staticfile():
+    with cd(env.code_dir):
+        with fabtools.python.virtualenv(env.virtualenv_dir):
+            run("python manage.py collectstatic")
 
 
 @task
@@ -183,67 +232,11 @@ def update_database():
             run("python manage.py migrate")
 
 
-@task
-@roles("user")
-def collection_static():
-    home = fabtools.user.home_directory(user)
-    with cd(code_dir(home)):
-        with fabtools.python.virtualenv(virtualenv_dir(home)):
-            run("python manage.py collectstatic")
 
 
-@task
-@roles("user")
-def add_local_settings():
-    puts(red("添加local_settings"))
-    home = fabtools.user.home_directory(user)
-    setting_file = posixpath.join(code_dir(home), "shu", "local_settings.py")
-    setting_template = '''\
-#encoding:utf-8
-import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DEBUG = False
-ALLOWED_HOSTS = ["ydzww.com","www.ydzww.com","104.237.159.20"]
-TEMPLATE_DEBUG = False
-DB_NAME = "%(db_name)s"
-DB_USER = "%(db_user)s"
-DB_PASSWORD = "%(db_pw)s"
-STATIC_ROOT = "%(static_dir)s"
-MEDIA_ROOT = "%(media_dir)s"
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(BASE_DIR,"cache"),
-        'TIMEOUT': 60,
-        'OPTIONS': {
-            'MAX_ENTRIES': 1000
-        }
-    }
-}
-
-'''
-    require.files.template_file(setting_file, template_contents=setting_template, context=dict(
-        db_name=mysql_db, db_user=mysql_user, db_pw=mysql_pw, static_dir=static_dir(home),
-        media_dir=media_dir(home))
-    )
-    puts(green("添加local_settings完成"))
 
 
-@task
-def install_virtualenv():
-    home = fabtools.user.home_directory(user)
-    # 创建virtualenv
-    require.python.virtualenv(virtualenv_dir(home))
 
-    with fabtools.python.virtualenv(virtualenv_dir(home)):
-        fabtools.python.install(["django",
-                                 "gunicorn",
-                                 "django-codemirror-widget",
-                                 "django-jsonfield",
-                                 "pillow",
-                                 "scrapy",
-                                 "MySQL-python",
-                                 "gevent"])
 
 
 @task
@@ -304,11 +297,6 @@ done
     )
 
 
-@roles("user")
-@task
-def git_pull():
-    home = fabtools.user.home_directory(user)
-    fabtools.git.pull(code_dir(home))
 
 
 @task
