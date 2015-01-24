@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block header %}
+    <div class="logo container">
+        <a href="{{ novel.get_novel_url }}">{{ novel }}</a>
+        <span>大作家<i>{{ novel.author }}</i>新书</span>
+    </div>
+    <div class="container" style="padding-top: 0;padding-bottom: 0">
+        <div class="bdsharebuttonbox"><a href="#" class="bds_more" data-cmd="more"></a><a title="分享到QQ空间" href="#"
+                                                                                          class="bds_qzone"
+                                                                                          data-cmd="qzone"></a><a
+                title="分享到新浪微博" href="#" class="bds_tsina" data-cmd="tsina"></a><a title="分享到腾讯微博" href="#"
+                                                                                   class="bds_tqq" data-cmd="tqq"></a><a
+                title="分享到人人网" href="#" class="bds_renren" data-cmd="renren"></a><a title="分享到微信" href="#"
+                                                                                    class="bds_weixin"
+                                                                                    data-cmd="weixin"></a></div>
+
+    </div>
+{% endblock %}
+
+{% block main %}
+    <nav class="breadcrumb pngfix">
+        <a href="{{ system.get_system_url }}" class="maincolor">首页</a>
+        <span class="c_gray en">&gt;</span><span class="c_gray">{{ novel }}最新章节列表</span>
+    </nav>
+    <div class="top cl" xmlns="http://www.w3.org/1999/html">
+        <div class="box top-l l">
+            <div class="l novelimg pd-10">
+                <img src="{{ novel.get_img_url }}" alt="{{ novel }}" width="120" height="150"/>
+            </div>
+            <div class="l novelinfo pd-10">
+                <h1>{{ novel }}</h1>
+
+                <p>作者：{{ novel.author }}</p>
+
+                <p class="text-overflow">最近更新：{{ novel.lastchaptertime|date:"Y:m:d H:i:s" }} &nbsp;&nbsp;最新章节：<a
+                        href="{{ novel.get_lastchapter_url }}" title="{{ novel }}">{{ novel.lastchaptername }}</a></p>
+
+                <div class="intro cl">
+                    {{ novel.intro|safe }}
+                </div>
+            </div>
+        </div>
+        <div class="box top-r r">
+            <div class="pd-10 tuijian">
+                <h3>热门小说</h3>
+                <ul>
+                    {% for novel in hot_novels %}
+                        <li><a href="{{ novel.get_novel_url }}" title="{{ novel }}">{{ novel }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <dl class="cl box pd-10 chapters">
+        <dt>
+            {{ novel.author }}新书，最新章节
+        </dt>
+        <div class="cl"></div>
+        {% for chapter in chapters %}
+            <dd class="text-overflow"><a href="{{ chapter.get_chapter_url }}" title="{{ chapter }}">{{ chapter }}</a>
+            </dd>
+        {% endfor %}
+    </dl>
+    <!--兼容版，可保证页面完全兼容-->
+    <div id="SOHUCS"></div>
+{% endblock %}
+
+{% block footer %}
+    <div class="copyright">
+        <p>{{ novel }}最新章节全部由来源于网络{{ novel }}吧，如果您有能力，请到正版网站，支持作者{{ novel.author }}最新大作 <a
+                href="{{ novel.get_novel_url }}">{{ novel }}</a>！</p>
+
+        <p>Copyright © <a href="{{ system.get_system_url }}">{{ system }}</a> All Rights Reserved.</p>
+    </div>
+{% endblock %}
+
+
+
+
+{% block title %}{% if novel.seo_title %}{{ novel.seo_title|safe }}{% else %}{{ novel }}最新更新_{{ novel.author }}_
+    {{ novel }}在线阅读{% endif %}{% endblock %}
+
+
+{% block keywords %}{% if novel.seo_keywords %}{{ novel.seo_keywords|safe }}{% else %}{{ novel }}最新更新,{{ novel }}在线阅读,
+    {{ novel.author }}{% endif %}{% endblock %}
+
+{% block description %}{% if novel.seo_description %}{{ novel.seo_description }}{% else %}{{ novel }}是{{ novel.author }}
+    的最新{{ novel.category }}小说，本站提供{{ novel }}最新更新，{{ novel }}在线阅读。比笔趣阁，顶点，22mt更好的无弹窗小说网{% endif %}{% endblock %}
+
+
+
+{% block endjs %}
+    {{ block.super }}
+    <script>
+        (function () {
+            var appid = 'cyrAI9l73',
+                    conf = 'prod_4d06ad120924892b116d2cc5fe6087e1';
+            var doc = document,
+                    s = doc.createElement('script'),
+                    h = doc.getElementsByTagName('head')[0] || doc.head || doc.documentElement;
+            s.type = 'text/javascript';
+            s.charset = 'utf-8';
+            s.src = 'http://assets.changyan.sohu.com/upload/changyan.js?conf=' + conf + '&appid=' + appid;
+            h.insertBefore(s, h.firstChild);
+        })()
+    </script>
+{% endblock %}

@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rule>
+    <SiteName>
+        {#    站点名    #}
+        <Method/>
+        <Pattern>23wx</Pattern>
+        <Regex/>
+        <Filter/>
+    </SiteName>
+
+    <SiteEncoding>
+        {#   获取站点编码     #}
+        <Method/>
+        <Pattern>gb18030</Pattern>
+        <Regex/>
+        <Filter/>
+    </SiteEncoding>
+    {#    获取站点地址   #}
+    <SiteUrl>
+        <Method/>
+        <Pattern>http://www.23wx.com</Pattern>
+        <Regex/>
+        <Filter/>
+    </SiteUrl>
+
+    <NovelListUrl>
+        {#       小说列表页     #}
+        <Method/>
+        <Pattern>http://www.23wx.com/我是中午/2_1.html,
+            http://www.23wx.com/class/2_1.html
+        </Pattern>
+        <Regex/>
+        <Filter/>
+    </NovelListUrl>
+
+
+    {#    获取小说URL #}
+    <GetNovelUrl>
+        <Method>Xpath</Method>
+        <Pattern>//dl[@id='content']/dd/table//tr/td[1]</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetNovelUrl>
+
+
+    {#    获取小说名 #}
+    <GetNovelName>
+        <Method>Xpath</Method>
+        <Pattern>//dl[@id='content']/dd[1]/h1/text()</Pattern>
+        <Regex>[^全文阅读]+</Regex>
+        <Filter/>
+    </GetNovelName>
+    {#    获取小说作者 #}
+    <GetNovelAuthor>
+        <Method>Xpath</Method>
+        <Pattern>//dl[@id='content']/dd[1]/h1/text()</Pattern>
+        <Regex>[^全文阅读]+</Regex>
+        <Filter/>
+    </GetNovelAuthor>
+    {#获取小说类别#}
+    <GetNovelCategory>
+        <Method>Xpath</Method>
+        <Pattern>//*[@id='at']//tr[1]/td[1]///text()</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetNovelCategory>
+
+    {#    获取小说介绍#}
+    <GetNovelIntro>
+        <Method>Xpath</Method>
+        <Pattern>//*[@id='content']//dd/p[2]/text()</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetNovelIntro>
+
+    {#    获取小说图片#}
+    <GetNovelImg>
+        <Method>Xpath</Method>
+        <Pattern>//dl[@id='content']/dd[2]/div[1]/a[@class='hst']/img/@src</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetNovelImg>
+
+    {#    获取小说章节列表#}
+    <GetChapterList>
+        <Method>Xpath</Method>
+        <Pattern>//dl[@id='content']/dd[2]/div[1]/a[@class='hst']/img/@src</Pattern>
+        <Flag>//p[@class='btnlinks']/a[@class='read']/@href</Flag>
+        <Regex/>
+        <Filter/>
+    </GetChapterList>
+    {#    获取小说章节名#}
+    <GetChapterName>
+        <Method>Xpath</Method>
+        <Pattern>//div[@id='amain']/dl/dd[1]/h1/text()</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetChapterName>
+    {#    获取小说章节内容#}
+    <GetChapterContent>
+        <Method>Xpath</Method>
+        <Pattern>//*[@id='contents']/text()</Pattern>
+        <Regex/>
+        <Filter/>
+    </GetChapterContent>
+
+</rule>

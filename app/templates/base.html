@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <title>{% block title %}{% endblock %}</title>
+    <meta name="keywords" content="{% block keywords %}{% endblock %}">
+    <meta name="description" content="{% block description %}{% endblock %}">
+    {% block meta %}
+
+    {% endblock %}
+    <link rel="Shortcut Icon" href=/favicon.ico>
+
+    {% load staticfiles %}
+    {% block css %}
+        <link rel="stylesheet" href="{% static 'css/H-ui.css' %}"/>
+        <link rel="stylesheet" href="{% static 'css/app.css' %}"/>
+    {% endblock %}
+
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="http://libs.useso.com/js/html5shiv/3.7/html5shiv.min.js"></script>
+    <script type="text/javascript" src="http://libs.useso.com/js/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    {{ system.tongji_js|safe }}
+    {% block topjs %}{{ system.top_js|safe }}{% endblock %}
+</head>
+<body>
+<div class="wp">
+    <header>
+        {% block header %}
+
+        {% endblock %}
+
+    </header>
+    <section class="container">
+        {% block main %}
+
+        {% endblock %}
+    </section>
+    <footer class="container">
+        {% block footer %}
+
+        {% endblock %}
+    </footer>
+</div>
+
+{% block endjs %}
+    <script src="//libs.useso.com/js/jquery/1.11.1/jquery.min.js"></script>
+
+    <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.1.min.js"><\/script>')</script>
+
+{% endblock %}
+<script>window._bd_share_config = {
+    "common": {
+        "bdSnsKey": {},
+        "bdText": "",
+        "bdMini": "1",
+        "bdMiniList": false,
+        "bdPic": "",
+        "bdStyle": "1",
+        "bdSize": "32"
+    },
+    "share": {},
+    "image": {"viewList": ["qzone", "tsina", "tqq", "renren", "weixin"], "viewText": "分享到：", "viewSize": "16"},
+    "selectShare": {"bdContainerClass": null, "bdSelectMiniList": ["qzone", "tsina", "tqq", "renren", "weixin"]}
+};
+with (document)0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+{{ system.end_js|safe }}
+</body>
+</html>

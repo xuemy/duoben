@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="cl ">
+        <nav class="breadcrumb pngfix">
+            <a href="{{ system.get_system_url }}" class="maincolor">首页</a>
+            <span class="c_gray en">&gt;</span><a href="{{ novel.get_novel_url }}">{{ novel }}</a>
+            <span class="c_gray en">&gt;</span><span class="c_gray">{{ chapter }}</span>
+        </nav>
+
+        <div class="chapter">
+            <h1>{{ chapter }}</h1>
+
+            <p class="m">小说：<a href="{{ novel.get_novel_url }}">{{ novel }}</a>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;作者：{{ novel.author }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                发布时间：{{ chapter.create_time|date:"Y年m月d日 H:i:s" }} </p>
+
+            <div class="setfont"><span class="setcolor">选择背景色：<a href="javascript:void(0);" onclick="setcolor(1)"
+                                                                 title="黄橙">黄橙</a><a href="javascript:void(0);"
+                                                                                     onclick="setcolor(2)"
+                                                                                     title="洋红">洋红</a><a
+                    href="javascript:void(0);" onclick="setcolor(3)" title="淡粉">淡粉</a><a href="javascript:void(0);"
+                                                                                         onclick="setcolor(4)"
+                                                                                         title="水蓝">水蓝</a><a
+                    href="javascript:void(0);" onclick="setcolor(5)" title="草绿">草绿</a></span><span class="fontStyle">选择字体：<a
+                    href="javascript:void(0);" onclick="fontstyle(1)">黑体</a><a href="javascript:void(0);"
+                                                                               onclick="fontstyle(2)">微软雅黑</a><a
+                    href="javascript:void(0);" onclick="fontstyle(3)">楷体</a></span><span class="fontSize">选择字体大小：<a
+                    href="javascript:void(0);" onclick="fontsize(1)">小</a><a href="javascript:void(0);"
+                                                                             onclick="fontsize(2)">中</a><a
+                    href="javascript:void(0);" onclick="fontsize(3)">大</a></span><span class="default"><a
+                    href="javascript:void(0);" onclick="defaultCL()">恢复默认</a></span></div>
+            <div id="content" class="pd-30">
+                <div class="page">
+                    (快捷键：←)
+                    <a href="{{ chapter.get_pre_chapter }}">上一章</a>
+                    <a href="{{ novel.get_novel_url }}">章节目录</a>
+                    <a href="{{ chapter.get_next_chapter }}">下一章</a>(快捷键：→)
+                </div>
+                {{ chapter.content|safe }}
+            </div>
+            <div class="page">
+                (快捷键：←)
+                <a href="{{ chapter.get_pre_chapter }}">上一章</a>
+                <a href="{{ novel.get_novel_url }}">章节目录</a>
+                <a href="{{ chapter.get_next_chapter }}">下一章</a>(快捷键：→)
+            </div>
+
+            <!--兼容版，可保证页面完全兼容-->
+            <div id="SOHUCS"></div>
+
+            <script type="text/javascript">
+                var back_page = "{{ chapter.get_pre_chapter }}";
+                var next_page = "{{ chapter.get_next_chapter }}";
+                document.onkeydown = function (evt) {
+                    var e = window.event || evt;
+                    if (e.keyCode == 37) location.href = back_page;
+                    if (e.keyCode == 39) location.href = next_page;
+                }
+            </script>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block endjs %}
+    {{ block.super }}
+    {% load staticfiles %}
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/chapter.js' %}"></script>
+    <script>
+        (function () {
+            var appid = 'cyrAI9l73',
+                    conf = 'prod_4d06ad120924892b116d2cc5fe6087e1';
+            var doc = document,
+                    s = doc.createElement('script'),
+                    h = doc.getElementsByTagName('head')[0] || doc.head || doc.documentElement;
+            s.type = 'text/javascript';
+            s.charset = 'utf-8';
+            s.src = 'http://assets.changyan.sohu.com/upload/changyan.js?conf=' + conf + '&appid=' + appid;
+            h.insertBefore(s, h.firstChild);
+        })()
+    </script>
+{% endblock %}
+
+
+{% block footer %}
+    <div class="copyright pd-20">
+        <p>{{ novel }}新书最新章节{{ chapter }}全部由来源于网络{{ novel }}吧，转载到{{ system }}是为了更好地宣传{{ novel }}，如果您有能力，请到正版网站，支持作者{{ novel.author }}最新大作
+            <a href="{{ novel.get_novel_url }}">{{ novel }}</a>！</p>
+
+        <p>Copyright © <a href="{{ system.get_system_url }}">{{ system }}</a> All Rights Reserved.</p>
+    </div>
+{% endblock %}
+
+{% block title %}
+    {{ chapter }}_{{ novel }}吧_{{ novel.author }}
+{% endblock %}
+{% block keywords %}
+    {{ chapter }},{{ novel }}
+{% endblock %}
+{% block description %}
+    {{ novel.author }}新书{{ novel }}最新章节{{ chapter }},阅读就来{{ novel }}吧
+{% endblock %}
+
+
+{% block header %}
+    <div class="pl-20 pr-20 text-l">
+        {% for hot_novel in hot_novels %}
+            <a href="{{ hot_novel.get_novel_url }}" title="{{ hot_novel }}">{{ hot_novel }}</a>
+        {% endfor %}
+
+
+    </div>
+{% endblock %}
