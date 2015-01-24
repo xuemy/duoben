@@ -12,33 +12,54 @@ from fabtools.vagrant import vagrant, vagrant_settings
 
 current_dir = posixpath.dirname(posixpath.abspath(__file__))
 
-# 设置一些变量
-host_ip = "104.237.159.20"
-host_port = 22
+PROXIED_SITE_TEMPLATE = """\
+upstream app_server {
+        server unix:%(bind)s fail_timeout=0;
+    }
+server {
+    listen %(port)s default;
+    server_name -;
+    default_type application/octet-stream;
+    gzip on;
+    gzip_http_version 1.0;
+    gzip_proxied any;
+    gzip_min_length 500;
+    gzip_disable "MSIE [1-6]\.";
+    gzip_types text/plain text/html text/xml text/css
+                text/comma-separated-values
+                text/javascript application/x-javascript
+                application/atom+xml image/jpeg image/gif image/png;
 
-git_url = "https://xuemy@bitbucket.org/xuemy/wumingshu.git"
+    # root /home/one;
 
-proxy_port = 8889
-proxy_url = "'http://127.0.0.1:%s'" % proxy_port
 
-log_dir = lambda home: posixpath.join(home, "log")
 
-gunicorn_log_dir = lambda home: posixpath.join(log_dir(home), "gunicorn")
-'''
-拿到一个vps后第一次运行 first() 函数,安装一些ubuntu必须的包，创建一个具有 sudo 权限的用户
-'''
+    location /static/ {
+        alias %(static_dir)s/;
 
-# # root_host = "%s@%s:%s" % (root, host_ip, host_port)
-# user_host = "%s@%s:%s" % (user, host_ip, host_port)
-#
-# env.roledefs = {
-# # "root": [root_host],
-# "user": [user_host],
-#     }
-# env.passwords = {
-#     # root_host:root_pw,
-#     user_host:user_pw
-# }
+
+    }
+
+    location /media/ {
+        alias %(media_dir)s/;
+        expires 30d;
+    }
+
+    location / {
+        try_files $uri @proxied;
+    }
+
+    location @proxied {
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Host $http_host;
+        proxy_redirect off;
+        proxy_pass http://app_server;
+    }
+
+    access_log %(nginx_log)s/access.log;
+}
+"""
+
 
 # 第一步 执行这个
 
@@ -47,9 +68,11 @@ def root():
     env.user = "root"
     env.password = ""
 
-
+env.hosts = ["127.0.0.1"]
 @task
 def user():
+
+    env.port = 2222
     env.user = "duoben"
     env.password = "duoben"
     env.mysql_root = "root"
@@ -57,17 +80,24 @@ def user():
     env.mysql_user = env.user
     env.mysql_db = env.user
     env.mysql_pw = "xmy@5650268"
+    env.git = "https://github.com/xuemy/duoben.git"
 
     home = fabtools.user.home_directory(env.user)
+
     env.virtualenv_dir = posixpath.join(home, "virtuanenv")
     env.code_dir = posixpath.join(home, "%s_code" % env.user)
-    media_dir = posixpath.join(env.code_dir, "media")
+
+    env.media_dir = posixpath.join(env.code_dir, "media")
     env.static_dir = posixpath.join(env.code_dir, "static")
     env.log_dir = posixpath.join(home, "log")
+    env.nginx_log = posixpath.join(env.log_dir, "nginx")
+
+    env.bind = posixpath.join(home, "gunicorn.sock")
 
     # 确保文件存在
-    require.directory(env.media_dir)
+
     require.directory(env.log_dir)
+    require.directory(env.nginx_log)
 
 
 def install_deb():
@@ -91,8 +121,8 @@ def install_deb():
 @task
 def add_user():
     # create sudoer user
-    require.users.user(env.user, password=env.password, shell="/bin/bash")
-    require.users.sudoer(env.user)
+    require.users.user("duoben", password="duoben", shell="/bin/bash")
+    require.users.sudoer("duoben")
 
 
 @task
@@ -110,70 +140,25 @@ def create_mysql():
 
 
 @task
-@roles("user")
 def create_nginx():
-    home = fabtools.user.home_directory(user)
     require.nginx.server()
-    PROXIED_SITE_TEMPLATE = """\
-server {
-    listen %(port)s default;
-    server_name www.ydzww.com ydzww.com;
-    default_type application/octet-stream;
-    gzip on;
-    gzip_http_version 1.0;
-    gzip_proxied any;
-    gzip_min_length 500;
-    gzip_disable "MSIE [1-6]\.";
-    gzip_types text/plain text/html text/xml text/css
-                text/comma-separated-values
-                text/javascript application/x-javascript
-                application/atom+xml image/jpeg image/gif image/png;
+    domain = "duoben.com"
 
-    # root /home/one;
-
-    if ($host = 'ydzww.com' ){
-        rewrite ^/(.*)$ http://www.ydzww.com/$1 permanent;
-    }
-
-    location /static/ {
-        alias %(static_dir)s/;
-
-    }
-
-    location /media/ {
-        alias %(media_dir)s/;
-        expires 30d;
-    }
-
-    location / {
-        try_files $uri @proxied;
-    }
-
-    location @proxied {
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
-        proxy_redirect off;
-        proxy_pass %(proxy_url)s;
-    }
-
-    access_log /var/log/nginx/%(user)s.log;
-}
-"""
-    require.nginx.site('one.com', template_contents=PROXIED_SITE_TEMPLATE,
-                       enabled=True,
-                       docroot=home,
-                       proxy_url=proxy_url,
-                       media_dir=media_dir(home),
-                       static_dir=static_dir(home),
-                       user=user
+    require.nginx.site(domain,
+                       template_contents=PROXIED_SITE_TEMPLATE,
+                       port = 80,
+                       bind = env.bind,
+                       media_dir = env.media_dir,
+                       static_dir = env.static_dir,
+                       nginx_log = env.nginx_log
     )
 
-
+@task
 def git_clone():
     puts(red("从git中 clone代码"))
-    home = fabtools.user.home_directory(user)
-    fabtools.git.clone(git_url, code_dir(home))
+    fabtools.git.clone(env.git,env.code_dir)
     puts(red("从git clone完成"))
+    require.directory(env.media_dir)
 
 
 @roles("user")
