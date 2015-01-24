@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 from fabtools.require.nginx import enabled
-import os
 import posixpath
 from fabric.colors import red, green
 from fabric.api import *
@@ -75,12 +74,13 @@ def user():
     env.port = 2222
     env.user = "duoben"
     env.password = "duoben"
-    env.mysql_root = "root"
+
     env.mysql_root_pw = "xmy@5650268"
 
-    env.mysql_user = env.user
-    env.mysql_db = env.user
+    env.mysql_user = "duoben"
     env.mysql_pw = "xmy@5650268"
+
+    env.mysql_db = "duoben"
 
     env.git = "https://github.com/xuemy/duoben.git"
 
@@ -136,9 +136,10 @@ def first():
 @task
 def create_mysql():
     require.mysql.server(password=env.mysql_root_pw)
-    with settings(mysql_user=env.mysql_root, mysql_password=env.mysql_root_pw):
-        require.mysql.user(env.mysql_user, env.mysql_pw)
-        require.mysql.database(env.mysql_db, owner=env.mysql_user)
+    with settings(mysql_user="root", mysql_password=env.mysql_root_pw):
+        puts(red("设置mysql user"))
+        require.mysql.user("duoben", "xmy@5650268")
+        require.mysql.database("duoben", owner="duoben")
 
 
 @task
@@ -191,14 +192,43 @@ def config_settings():
     puts(red("添加local_settings"))
     setting_file = posixpath.join(env.code_dir, "duoben", "local_settings.py")
     setting_template = '''\
-#encoding:utf-8
-from app import admin
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+from django.contrib import admin
 from django.conf.urls import patterns, url, include
-DB_NAME = "%(db_name)s"
-DB_USER = "%(db_user)s"
-DB_PASSWORD = "%(db_passwd)s"
-DEBUG = False
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+DB_NAME = "duoben"
+DB_USER = "duoben"
+DB_PASSWORD = "xmy@5650268"
+
 local_url = patterns("",url(r'^xmy/admin/', include(admin.site.urls)),)
+ALLOWED_HOSTS = ["*"]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+
+DEBUG = True
+TEMPLATE_DEBUG = True
+if DEBUG:
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
+else:
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+
+            }
+    }
+
 '''
     require.files.template_file(setting_file,
                                 template_contents=setting_template,
@@ -222,6 +252,39 @@ def config_staticfile():
             run("python manage.py collectstatic")
 
 
+
+@task
+def install_gunicorn():
+    gunicorn_command = posixpath.join(env.virtualenv_dir, "bin/gunicorn")
+    access_log = posixpath.join(env.log_dir, "access.log")
+    error_log = posixpath.join(env.log_dir, "error.log")
+    require.files.file(access_log)
+    require.files.file(error_log)
+
+    supervisor_log = posixpath.join(env.log_dir, "supervisor.log")
+    require.files.file(supervisor_log)
+
+    require.supervisor.process(env.user,
+                               command='%(gunicorn_command)s duoben.wsgi:application '
+                                       '-w 4 -b unix:%(bind)s '
+                                       '-k gevent --max-requests 500 '
+                                       '--access-logfile=%(access_log)s '
+                                       '--error-logfile=%(error_log)s ' %
+
+                                       dict(gunicorn_command=gunicorn_command,
+                                            access_log=access_log,
+                                            error_log=error_log,
+                                            bind=env.bind),
+                               directory=env.code_dir,
+                               user="duoben",
+                               process_name=env.user,
+                               stdout_logfile=supervisor_log)
+
+
+
+
+
+
 @task
 @roles("user")
 def update_database():
@@ -232,37 +295,6 @@ def update_database():
             run("python manage.py migrate")
 
 
-
-
-
-
-
-
-
-@task
-def install_gunicorn():
-    home = fabtools.user.home_directory(user)
-    _virtualenv_dir = virtualenv_dir(home)
-    gunicorn_command = posixpath.join(_virtualenv_dir, "bin/gunicorn")
-
-    access_log = posixpath.join(gunicorn_log_dir(home), "access.log")
-    error_log = posixpath.join(gunicorn_log_dir(home), "error.log")
-    require.files.file(access_log)
-    require.files.file(error_log)
-
-    supervisor_log = posixpath.join(log_dir(home), "supervisor.log")
-    require.files.file(supervisor_log)
-
-    require.supervisor.process(user,
-                               command='%(gunicorn_command)s shu.wsgi:application -w 4 -b :%(proxy_port)s -k gevent --max-requests 500 --access-logfile=%(access_log)s --error-logfile=%(error_log)s' %
-                                       dict(gunicorn_command=gunicorn_command,
-                                            access_log=access_log,
-                                            error_log=error_log,
-                                            proxy_port=proxy_port),
-                               directory=code_dir(home),
-                               user=user,
-                               process_name=user,
-                               stdot_logfile=supervisor_log)
 
 
 @roles("user")
@@ -300,9 +332,8 @@ done
 
 
 @task
-@roles("user")
 def restart_web():
-    fabtools.supervisor.restart_process(user)
+    fabtools.supervisor.restart_process(env.user)
 
 
 @task

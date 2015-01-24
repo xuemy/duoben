@@ -87,40 +87,7 @@ TEMPLATE_CONTEXT_PROCESSORS += ('django.core.context_processors.request',"app.pr
 
 
 
+
+
+
 from local_settings import *
-if DEBUG:
-    TEMPLATE_DEBUG = True
-    ALLOWED_HOSTS = []
-    STATICFILES_DIRS = (
-        os.path.join(BASE_DIR, "static"),
-    )
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-        }
-    }
-else:
-    TEMPLATE_DEBUG = False
-    ALLOWED_HOSTS = ["*"]
-    STATIC_ROOT = os.path.join(BASE_DIR, "static")
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': DB_NAME,
-            'USER': DB_USER,
-            'PASSWORD': DB_PASSWORD,
-
-        }
-    }
-
-    # CACHES = {
-    #     'default': {
-    #         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-    #         'LOCATION': os.path.join(BASE_DIR, "cache"),
-    #         'TIMEOUT': 60,
-    #         'OPTIONS': {
-    #             'MAX_ENTRIES': 1000
-    #         }
-    #     }
-    # }

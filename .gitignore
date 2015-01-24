@@ -121,5 +121,6 @@ target/
 media/
 app/migrations/0*.py
 db.sqlite3
+duoben/local_settings.py
 
 
