@@ -86,6 +86,7 @@ def user():
 
     home = fabtools.user.home_directory(env.user)
 
+    env.home = home
     env.virtualenv_dir = posixpath.join(home, "virtuanenv")
     env.code_dir = posixpath.join(home, "%s_code" % env.user)
 
@@ -286,47 +287,15 @@ def install_gunicorn():
 
 
 @task
-@roles("user")
 def update_database():
-    home = fabtools.user.home_directory(user)
-    with cd(code_dir(home)):
-        with fabtools.python.virtualenv(virtualenv_dir(home)):
+    with cd(env.code_dir):
+        with fabtools.python.virtualenv(env.virtualenv_dir):
             run("python manage.py makemigrations")
             run("python manage.py migrate")
 
 
 
 
-@roles("user")
-@task
-def config_crawl():
-    home = fabtools.user.home_directory(user)
-    crawl_name = "crawl_shu"
-    crawl_path = posixpath.join(home, crawl_name + ".sh")
-    crawl_log = posixpath.join(log_dir(home), "crawl.log")
-    require.files.file(crawl_log)
-    template = '''\
-#!/bin/bash
-
-cd %(virtualenv_scrapy)s
-source activate
-cd %(crawl)s
-while true
-do
-    scrapy crawl shu --logfile=%(crawl_log)s
-    sleep 240
-done
-''' % dict(crawl=posixpath.join(code_dir(home), "crawl"),
-           scrapy_bin=posixpath.join(virtualenv_dir(home), "bin", "scrapy"),
-           virtualenv_scrapy=posixpath.join(virtualenv_dir(home), 'bin'),
-           crawl_log=crawl_log)
-    require.files.file(crawl_path, contents=template)
-    require.supervisor.process(crawl_name,
-                               command="/bin/bash %s" % crawl_path,
-                               directory=posixpath.join(code_dir(home), "crawl"),
-                               user=user,
-                               process_name=crawl_name,
-    )
 
 
 
@@ -342,42 +311,9 @@ def start_web():
     fabtools.supervisor.start_process(user)
 
 
-@roles("user")
-@task
-def second():
-    # 创建一个 数据库
-    # puts(red("开始创建数据库"))
-    # create_mysql()
-    # puts(green("创建数据库成功"))
-
-    # puts(red("开始创建 Media 、log文件夹"))
-    # create_files()
-    # puts(green("创建文件夹成功"))
-
-    # install_virtualenv()
-    # git_clone()
-    # add_local_settings()
-    config_django()
-    collection_static()
-
-    install_gunicorn()
-    create_nginx()
 
 
 @task
-@roles("user")
-def test():
-    home = fabtools.user.home_directory(user)
-    # with cd(code_dir(home)):
-    #     with fabtools.python.virtualenv(virtualenv_dir(home)):
-    #         run("python manage.py loaddata data.json")
-    with fabtools.python.virtualenv(virtualenv_dir(home)):
-        with cd(posixpath.join(code_dir(home), "crawl")):
-            run("scrapy crawl shu")
-
-
-@task
-@roles("user")
 def crawl():
     crawl_template = '''\
 #!/bin/bash
@@ -391,9 +327,9 @@ do
     sleep %(sleep_time)s
 done
 '''
-    home = fabtools.user.home_directory(user)
-    crawl_dir = posixpath.join(code_dir(home), "crawl")
-    virtualenv_ = posixpath.join(home, "virtualenv")
+    home = env.home
+    crawl_dir = posixpath.join(env.code_dir, "crawl")
+    virtualenv_ = env.virtualenv_dir
 
     def custom_crawl(crawl_name):
         crawl_sh = posixpath.join(home, crawl_name)
@@ -401,33 +337,31 @@ done
             virtualenv_dir=virtualenv_,
             crawl_dir=crawl_dir,
             crawl_name=crawl_name,
-            crawl_log=posixpath.join(log_dir(home), "%s.log" % crawl_name),
-            sleep_time=180
+            crawl_log=posixpath.join(env.log_dir, "%s.log" % crawl_name),
+            sleep_time=300
         ))
 
         require.supervisor.process(crawl_name,
                                    command="/bin/bash %s" % crawl_sh,
-                                   directory=posixpath.join(code_dir(home), "crawl"),
+                                   directory=posixpath.join(env.code_dir, "crawl"),
                                    user=user,
                                    process_name=crawl_name, )
 
     # main crawl
-    custom_crawl("main_crawl")
+
     custom_crawl("single_crawl")
-    custom_crawl("hot_crawl")
+
 
 
 @task
 @roles("user")
 def stop_crawl():
-    fabtools.supervisor.stop_process("main_crawl")
     fabtools.supervisor.stop_process("single_crawl")
-    fabtools.supervisor.stop_process("hot_crawl")
+
 
 
 @task
 @roles("user")
 def start_crawl():
-    fabtools.supervisor.start_process("main_crawl")
+
     fabtools.supervisor.start_process("single_crawl")
-    fabtools.supervisor.start_process("hot_crawl")

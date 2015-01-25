@@ -42,7 +42,11 @@
                 <h3>热门小说</h3>
                 <ul>
                     {% for novel in hot_novels %}
-                        <li><a href="{{ novel.get_novel_url }}" title="{{ novel }}">{{ novel }}</a></li>
+                        <li class="text-overflow"><a href="{{ novel.get_novel_url }}" title="{{ novel }}">
+                            {{ novel }}</a>/
+                            <span style="color: #aeaa9c;font-size: 12px">{{ novel.author }}</span>
+                        </li>
+
                     {% endfor %}
 
                 </ul>
@@ -98,12 +102,29 @@
 {% endblock %}
 
 
-{% block title %}{% if novel.seo_title %}{{ novel.seo_title|safe }}{% else %}{{ novel }}最新更新_{{ novel.author }}_
-    {{ novel }}在线阅读{% endif %}{% endblock %}
+{% block title %}{% if novel.seo_title %}{{ novel.seo_title|safe }}{% else %}{{ novel }}最新更新_{{ novel.author }}新书_{{ novel }}无弹窗5200在线阅读{% endif %}{% endblock %}
 
 
-{% block keywords %}{% if novel.seo_keywords %}{{ novel.seo_keywords|safe }}{% else %}{{ novel }}最新更新,{{ novel }}在线阅读,
-    {{ novel.author }}{% endif %}{% endblock %}
+{% block keywords %}{% if novel.seo_keywords %}{{ novel.seo_keywords|safe }}{% else %}{{ novel }}最新更新,{{ novel }}无弹窗,{{ novel.author }}新书，{% endif %}{% endblock %}
 
-{% block description %}{% if novel.seo_description %}{{ novel.seo_description }}{% else %}{{ novel }}是{{ novel.author }}
-    的最新{{ novel.category }}小说，本站提供{{ novel }}最新更新，{{ novel }}在线阅读。比笔趣阁，顶点，22mt更好的无弹窗小说网{% endif %}{% endblock %}
+{% block description %}{% if novel.seo_description %}{{ novel.seo_description }}{% else %}{{ novel }}是{{ novel.author }}的最新{{ novel.category }}小说，本站提供{{ novel }}最新更新，{{ novel }}无弹窗在线阅读。比笔趣阁，顶点，22mt，笔下文学更好的无弹窗小说网{% endif %}{% endblock %}
+
+
+{% block endjs %}
+{{ block.super }}
+    <script>window._bd_share_config = {
+    "common": {
+        "bdSnsKey": {},
+        "bdText": "",
+        "bdMini": "1",
+        "bdMiniList": false,
+        "bdPic": "",
+        "bdStyle": "1",
+        "bdSize": "32"
+    },
+    "share": {},
+    "image": {"viewList": ["qzone", "tsina", "tqq", "renren", "weixin"], "viewText": "分享到：", "viewSize": "16"},
+    "selectShare": {"bdContainerClass": null, "bdSelectMiniList": ["qzone", "tsina", "tqq", "renren", "weixin"]}
+};
+with (document)0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+{% endblock %}
