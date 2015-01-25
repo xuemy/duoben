@@ -22,7 +22,7 @@ class System(models.Model):
     global_desc_t = models.TextField("首页description模板", blank=True, null=True)
 
     tongji = models.TextField("统计代码", blank=True, null=True)
-    sousuo = models.TextField("搜索代码", blank=True, null=True)
+    # sousuo = models.TextField("搜索代码", blank=True, null=True)
 
     ad = models.TextField("广告代码", blank=True, null=True)
 

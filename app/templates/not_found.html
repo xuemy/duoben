@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="wp">
+    <p>当您看到这个页面的时候说明您访问的这个也面我们找不到，但是不要着急，我们给
+    你准备了很多好看的小说</p>
+
+    <p>
+    {% for novel in novels %}
+        <a href="{{ novel.get_novel_url }}">{{ novel }}</a>
+    {% endfor %}
+
+    </p>
+</div>
+{% endblock %}

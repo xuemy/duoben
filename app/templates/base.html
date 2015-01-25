@@ -24,7 +24,6 @@
     <script type="text/javascript" src="http://libs.useso.com/js/html5shiv/3.7/html5shiv.min.js"></script>
     <script type="text/javascript" src="http://libs.useso.com/js/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
-    {{ system.tongji_js|safe }}
     {% block topjs %}{{ system.top_js|safe }}{% endblock %}
 </head>
 <body>
@@ -54,6 +53,6 @@
 
 {% endblock %}
 
-{{ system.end_js|safe }}
+{{ system.ad|safe }}
 </body>
 </html>

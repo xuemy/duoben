@@ -21,7 +21,7 @@ if settings.DEBUG:
                                 "django.views.static.serve", \
                                 {"document_root": settings.MEDIA_ROOT, }))
 
-
+handler404 = 'app.error.not_found'
 if settings.DEBUG:
     urlpatterns += patterns("",url(r'^admin/', include(admin.site.urls)),)
 else:
